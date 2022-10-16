@@ -19,7 +19,7 @@ class WanDBWriter:
 
             wandb.init(
                 project=config['trainer'].get('wandb_project'),
-                config=config.config
+                config=config.config,
             )
             self.wandb = wandb
 
@@ -59,10 +59,10 @@ class WanDBWriter:
             self._scalar_name(scalar_name): self.wandb.Image(image)
         }, step=self.step)
 
-    def add_audio(self, scalar_name, audio, sample_rate=None):
+    def add_audio(self, scalar_name, audio, caption=None, sample_rate=None):
         audio = audio.detach().cpu().numpy().T
         self.wandb.log({
-            self._scalar_name(scalar_name): self.wandb.Audio(audio, sample_rate=sample_rate)
+            self._scalar_name(scalar_name): self.wandb.Audio(audio, caption=caption, sample_rate=sample_rate)
         }, step=self.step)
 
     def add_text(self, scalar_name, text):

@@ -93,7 +93,7 @@
     "monitor": "min val_loss",
     "early_stop": 100,
     "visualize": "wandb",
-    "wandb_project": "asr_project",
+    "wandb_project": "dla-asr",
     "len_epoch": 100,
     "grad_norm_clip": 10
   }

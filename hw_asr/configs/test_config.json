@@ -1,5 +1,6 @@
 {
-  "name": "default_config",
+  "name": "test_config",
+  "text_encoder": "CharTextEncoder",
   "n_gpu": 1,
   "preprocessing": {
     "sr": 16000,

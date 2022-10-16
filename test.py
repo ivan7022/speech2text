@@ -2,6 +2,7 @@ import argparse
 import json
 import os
 from pathlib import Path
+from hw_asr.metric import wer_metric
 
 import torch
 from tqdm import tqdm
@@ -11,8 +12,11 @@ from hw_asr.trainer import Trainer
 from hw_asr.utils import ROOT_PATH
 from hw_asr.utils.object_loading import get_dataloaders
 from hw_asr.utils.parse_config import ConfigParser
+from hw_asr.metric.utils import calc_wer
+from hw_asr.metric.utils import calc_cer
 
-DEFAULT_CHECKPOINT_PATH = ROOT_PATH / "default_test_model" / "checkpoint.pth"
+
+DEFAULT_CHECKPOINT_PATH = ROOT_PATH / "saved" / "models" / "default_config" / "1016_162958" / "model_best.pth"
 
 
 def main(config, out_file):
@@ -43,6 +47,12 @@ def main(config, out_file):
     model.eval()
 
     results = []
+    metrics = dict(
+        wer_argmax=[],
+        wer_beamsearch=[],
+        cer_argmax=[],
+        oracle_wer=[],
+    )
 
     with torch.no_grad():
         for batch_num, batch in enumerate(tqdm(dataloaders["test"])):
@@ -66,10 +76,30 @@ def main(config, out_file):
                         "ground_trurh": batch["text"][i],
                         "pred_text_argmax": text_encoder.ctc_decode(argmax.cpu().numpy()),
                         "pred_text_beam_search": text_encoder.ctc_beam_search(
-                            batch["probs"][i], batch["log_probs_length"][i], beam_size=100
-                        )[:10],
+                            batch["probs"][i], batch["log_probs_length"][i], beam_size=20
+                        ),
                     }
                 )
+                metrics['wer_argmax'].append(calc_wer(
+                    results[-1]['ground_trurh'],
+                    results[-1]['pred_text_argmax']
+                ))
+                metrics['cer_argmax'].append(calc_cer(
+                    results[-1]['ground_trurh'],
+                    results[-1]['pred_text_argmax']
+                ))
+                metrics['wer_beamsearch'].append(calc_cer(
+                    results[-1]['ground_trurh'],
+                    results[-1]['pred_text_beam_search'][0][0]
+                ))
+                metrics['oracle_wer'].append(min(
+                    calc_cer(results[-1]['ground_trurh'], hypo) \
+                    for hypo, _ in results[-1]['pred_text_beam_search']
+                ))
+
+    for name, vals in metrics.items():
+        print('{}: {:.4f}'.format(name, sum(vals) / len(vals)))
+                
     with Path(out_file).open("w") as f:
         json.dump(results, f, indent=2)
 
@@ -153,13 +183,10 @@ if __name__ == "__main__":
                 "num_workers": args.jobs,
                 "datasets": [
                     {
-                        "type": "CustomDirAudioDataset",
+                        "type": "LibrispeechDataset",
                         "args": {
-                            "audio_dir": str(test_data_folder / "audio"),
-                            "transcription_dir": str(
-                                test_data_folder / "transcriptions"
-                            ),
-                        },
+                            "part": "test-other"
+                        }
                     }
                 ],
             }
