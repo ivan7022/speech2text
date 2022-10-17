@@ -12,7 +12,7 @@
 
 2. Download best model checkpoint from https://disk.yandex.ru/d/nrjR_EMvW5wfSA or with script.
 ```shell
-wget https://file.io/X8k7zGWAg8y5 -O model_best.pth
+wget  -O model_best.pth https://file.io/X8k7zGWAg8y5
 ```
 
 3. Download LM checkpoint.
