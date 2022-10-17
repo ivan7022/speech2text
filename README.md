@@ -18,11 +18,11 @@ wget https://www.openslr.org/resources/11/4-gram.arpa.gz --no-check-certificate
 ```
 
 4. Inference model!
-``shell
+```shell
    python test.py -c hw_asr/configs/test_config.json -t test_data -b 5 -r model_best.pth -o output_other.json
 ```
 or 
-``shell
+```shell
   python test.py -c hw_asr/configs/test_config.json -b 5 -r model_best.pth -o output_other.json
 ```
 which runs eval on test-other by default.
