@@ -10,7 +10,10 @@
    -it --rm speech2text
 ```
 
-2. Download best model checkpoint from https://disk.yandex.ru/d/nrjR_EMvW5wfSA.
+2. Download best model checkpoint from https://disk.yandex.ru/d/nrjR_EMvW5wfSA or with script.
+```shell
+wget https://github.com/ivan7022/speech2text
+```
 
 3. Download LM checkpoint.
 ```shell
