@@ -142,7 +142,7 @@ class ConfigParser:
             if "text_encoder" not in self._config:
                 self._text_encoder = CTCCharTextEncoder()
             else:
-                self._text_encoder = self.init_obj(self["text_encoder"],
+                self._text_encoder = self.init_obj(self._config["text_encoder"],
                                                    default_module=text_encoder_module)
         return self._text_encoder
 

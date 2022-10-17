@@ -21,6 +21,10 @@
       {"type": "TimeMasking", "args": {"p": 0.1, "time": 10}}
     ]
   },
+  "text_encoder": {
+    "type": "CTCCharTextEncoder",
+    "args": {}
+  },
   "arch": {
     "type": "DeepSpeech2",
     "args": {
@@ -127,15 +131,15 @@
   "lr_scheduler": {
     "type": "OneCycleLR",
     "args": {
-      "steps_per_epoch": 1000,
-      "epochs": 50,
+      "steps_per_epoch": 200,
+      "epochs": 10,
       "anneal_strategy": "cos",
       "max_lr": 5e-4,
       "pct_start": 0.2
     }
   },
   "trainer": {
-    "epochs": 50,
+    "epochs": 10,
     "save_dir": "saved/",
     "save_period": 5,
     "verbosity": 2,
@@ -143,7 +147,7 @@
     "early_stop": 100,
     "visualize": "wandb",
     "wandb_project": "dla-asr",
-    "len_epoch": 1000,
+    "len_epoch": 200,
     "grad_norm_clip": 10
   }
 }

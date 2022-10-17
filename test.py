@@ -8,6 +8,7 @@ import torch
 from tqdm import tqdm
 
 import hw_asr.model as module_model
+from hw_asr.base.base_text_encoder import BaseTextEncoder
 from hw_asr.trainer import Trainer
 from hw_asr.utils import ROOT_PATH
 from hw_asr.utils.object_loading import get_dataloaders
@@ -75,25 +76,26 @@ def main(config, out_file):
                     {
                         "ground_trurh": batch["text"][i],
                         "pred_text_argmax": text_encoder.ctc_decode(argmax.cpu().numpy()),
-                        "pred_text_beam_search": text_encoder.ctc_beam_search(
-                            batch["probs"][i], batch["log_probs_length"][i], beam_size=20
+                        "pred_text_beam_search": text_encoder.lm_beam_search(
+                            batch["log_probs"][i], batch["log_probs_length"][i], beam_size=2000
                         ),
                     }
                 )
+                target = BaseTextEncoder.normalize_text(results[-1]['ground_trurh'])
                 metrics['wer_argmax'].append(calc_wer(
-                    results[-1]['ground_trurh'],
+                    target,
                     results[-1]['pred_text_argmax']
                 ))
                 metrics['cer_argmax'].append(calc_cer(
-                    results[-1]['ground_trurh'],
+                    target,
                     results[-1]['pred_text_argmax']
                 ))
                 metrics['wer_beamsearch'].append(calc_cer(
-                    results[-1]['ground_trurh'],
+                    target,
                     results[-1]['pred_text_beam_search'][0][0]
                 ))
                 metrics['oracle_wer'].append(min(
-                    calc_cer(results[-1]['ground_trurh'], hypo) \
+                    calc_cer(target, hypo) \
                     for hypo, _ in results[-1]['pred_text_beam_search']
                 ))
 
@@ -183,15 +185,17 @@ if __name__ == "__main__":
                 "num_workers": args.jobs,
                 "datasets": [
                     {
-                        "type": "LibrispeechDataset",
+                        "type": "CustomDirAudioDataset",
                         "args": {
-                            "part": "test-other"
-                        }
+                            "audio_dir": str(test_data_folder / "audio"),
+                            "transcription_dir": str(
+                                test_data_folder / "transcriptions"
+                            ),
+                        },
                     }
                 ],
             }
         }
-
     assert config.config.get("data", {}).get("test", None) is not None
     config["data"]["test"]["batch_size"] = args.batch_size
     config["data"]["test"]["n_jobs"] = args.jobs

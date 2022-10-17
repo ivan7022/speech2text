@@ -4,6 +4,7 @@ from random import shuffle
 
 import PIL
 import pandas as pd
+import numpy as np
 import torch
 import torch.nn.functional as F
 from torch.nn.utils import clip_grad_norm_
@@ -209,7 +210,6 @@ class Trainer(BaseTrainer):
             *args,
             **kwargs,
     ):
-        # TODO: implement logging of beam search results
         if self.writer is None:
             return
         argmax_inds = log_probs.cpu().argmax(-1).numpy()
@@ -219,18 +219,25 @@ class Trainer(BaseTrainer):
         ]
         argmax_texts_raw = [self.text_encoder.decode(inds) for inds in argmax_inds]
         argmax_texts = [self.text_encoder.ctc_decode(inds) for inds in argmax_inds]
+
         tuples = list(zip(argmax_texts, text, argmax_texts_raw, audio_path))
-        shuffle(tuples)
+        iter_index = np.random.choice(np.arange(len(tuples)), examples_to_log, replace=False)
         rows = {}
-        for pred, target, raw_pred, audio_path in tuples[:examples_to_log]:
+        for idx in iter_index:
+            pred, target, raw_pred, audio_path = tuples[idx]
+            beam_search_pred = self.text_encoder.lm_beam_search(log_probs[idx], log_probs_length[idx])[0][0]
+
             target = BaseTextEncoder.normalize_text(target)
             wer = calc_wer(target, pred) * 100
             cer = calc_cer(target, pred) * 100
+            beam_search_wer = calc_wer(target, beam_search_pred) * 100
 
             rows[Path(audio_path).name] = {
                 "target": target,
                 "raw prediction": raw_pred,
                 "predictions": pred,
+                "beam search predictions": beam_search_pred,
+                "beam_search_wer": beam_search_wer,
                 "wer": wer,
                 "cer": cer,
             }
