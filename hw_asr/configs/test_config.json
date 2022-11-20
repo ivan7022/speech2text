@@ -20,6 +20,7 @@
   "text_encoder": {
     "type": "CTCCharTextEncoder",
     "args": {
+      "lm_path": "4-gram.arpa.gz"
     }
   },
   "data": {
