@@ -77,7 +77,7 @@ def main(config, out_file):
                         "ground_trurh": batch["text"][i],
                         "pred_text_argmax": text_encoder.ctc_decode(argmax.cpu().numpy()),
                         "pred_text_beam_search": text_encoder.lm_beam_search(
-                            batch["log_probs"][i], batch["log_probs_length"][i], beam_size=2000
+                            batch["log_probs"][i], batch["log_probs_length"][i], beam_size=100
                         ),
                     }
                 )
@@ -90,7 +90,7 @@ def main(config, out_file):
                     target,
                     results[-1]['pred_text_argmax']
                 ))
-                metrics['wer_beamsearch'].append(calc_cer(
+                metrics['wer_beamsearch'].append(calc_wer(
                     target,
                     results[-1]['pred_text_beam_search'][0][0]
                 ))
